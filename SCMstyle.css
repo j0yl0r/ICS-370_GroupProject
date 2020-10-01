@@ -1,0 +1,77 @@
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+/* Style the header */
+.header {
+  padding: 200px;
+  text-align: center;
+  background-image: url("difference-between-supply-chain-and-logistics.jpg");
+  background-repeat: no-repeat;
+  background-position: center; 
+  color: white;
+}
+
+/* Increase the font size of the h1 element */
+.header h1 {
+  font-size: 40px;
+}
+
+/* Style the top navigation bar */
+.navbar {
+  overflow: hidden;
+  background-color: rgb(78, 50, 43);
+  width: 715px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Style the navigation bar links */
+.navbar a {
+  float: left;
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 20px;
+  text-decoration: none;
+}
+
+/* Right-aligned link */
+.navbar a.right {
+  float: right;
+}
+
+/* Change color on hover */
+.navbar a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+/* background color */
+.bg {
+  background-color: rgb(253, 248, 232);
+  color: black;
+  text-align: left;
+  background-repeat: repeat;
+  background-position: center; 
+  padding: 20px;
+  margin: 0px 274px ;
+}
+
+/* border layout*/
+.round {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 50px 150px 50px 230px; 
+  text-align: left;
+}
+
+/* border layout for create account*/
+.round2 {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 50px;
+  text-align: center;
+}
