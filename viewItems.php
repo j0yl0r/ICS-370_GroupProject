@@ -5,21 +5,23 @@
     global $conn;
     include("./header.php");
 ?>
-<?php
-    if(isset($_POST["item_id"]) && isset($_POST["qty"])){
-        $query = "CALL `relate_item_and_order`(".$user_id.", ".$_POST["item_id"].", ".$_POST["qty"].");";
-        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
-        $result = mysqli_store_result($conn);
-        while (mysqli_next_result($conn));
-    }
-?>
 
 <!-- background on the website-->
 <div class="bg">
+    
+    <?php
+        if(isset($_POST["item_id"]) && isset($_POST["qty"])){
+            $query = "CALL `relate_item_and_order`(".$user_id.", ".$_POST["item_id"].", ".$_POST["qty"].");";
+            mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+            $result = mysqli_store_result($conn);
+            while (mysqli_next_result($conn));
+            echo "<h4>Added item to order</h4>";
+        }
+    ?>
+
     <p>View Items</p>
     
-    <table>
-        <tr><th>Item Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Order Qty</th><th>Actions</th></tr>
+    <table><tr><th>Item Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Order Qty</th><th>Actions</th></tr>
     <?php
 
         $query = "CALL `select_all_items`()";

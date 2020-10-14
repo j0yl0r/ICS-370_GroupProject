@@ -6,8 +6,20 @@
     include("./header.php");
 ?>
 
+
 <!-- background on the website-->
 <div class="bg">
+    
+    <?php
+        if(isset($_POST["relation_id"])){
+            $query = "CALL `delete_order_item_relation`(".$_POST['relation_id'].");";
+            mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+            $result = mysqli_store_result($conn);
+            while (mysqli_next_result($conn));
+            echo "<h4>Removed item from order</h4>";
+        }
+    ?>
+    
     <p>View Orders</p>
     <?php 
         $query = "CALL `select_customer_orders`(".$user_id.")";
@@ -47,10 +59,13 @@
                 $result = mysqli_store_result($conn);
                 while($row = mysqli_fetch_row($result)){
                     echo "<tr>";
-                    echo "<td style='width: 250px;'>".$row[0]."</td>";
-                    echo "<td style='width: 150px;'>".$row[1]."</td>";
-                    echo "<td style='width: 100px;'>".$row[2]."</td>";
-                    echo "<td style='width: 200px;'><a href=''>Remove from order</a></td>";
+                    echo "<td style='width: 250px;'>".$row[1]."</td>";
+                    echo "<td style='width: 150px;'>".$row[2]."</td>";
+                    echo "<td style='width: 100px;'>".$row[3]."</td>";
+                    echo "<td style='width: 200px;'>
+                    <form action='' method='post'>
+                    <button type='submit' name='relation_id' value=".$row[0].">Remove From Order</button>
+                    </td>";
                     echo "</tr>";
                 }
                 mysqli_free_result($result);
