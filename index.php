@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Supply Chain Management Site</title>
-        <link rel="stylesheet" href="SCMstyle.css">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-
-    <body>
-        <!-- header on the website-->
-        <div class="header"></div>
-
-        <!-- navigation bar on the website-->
-        <div class="navbar">
-            <a href="SCMsite.html">Home</a>
-            <a href="orderItems.html">Order Items</a>
-            <a href="viewOrders.html">View Orders</a>
-            <a href="viewReturns.html">View Returns</a>
-            <a href="trackDeliveries.html">Track Deliveries</a>
-            <a href="login.html" class="right">Log In</a>
-        </div>
+<?php
+    include("./force_login.php");
+    include_once("./sqlInit.php");
+    global $conn;
+    include("./header.php");
+?>
 
         <!-- background on the website-->
         <div class="bg">
@@ -43,6 +27,7 @@
             <div>
         </div>
 
-         
-     </body>
-</html>
+        
+<?php
+    include("./footer.php");
+?>
