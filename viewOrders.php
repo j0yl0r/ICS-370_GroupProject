@@ -35,7 +35,11 @@
                 while (mysqli_next_result($conn));
                 
                 echo "<h3>Order ID: ".$order_id."</h3>";
-                echo "<h3>Order Status: ".$order_status."</h3>";
+                echo "<h3>Order Status: ".$order_status;
+                if($order_status == 'being_made'){
+                    echo "&nbsp&nbsp&nbsp&nbsp&nbsp<a href=''>Checkout</a>";
+                }
+                echo "</h3>";
                 echo "<table><tr><th>Item Name</th><th>Item Quantity</th><th>Item Price</th><th>Actions</th></tr>";
 
                 $query = "CALL `select_order_info`(".$order_id.");";
@@ -46,7 +50,7 @@
                     echo "<td style='width: 250px;'>".$row[0]."</td>";
                     echo "<td style='width: 150px;'>".$row[1]."</td>";
                     echo "<td style='width: 100px;'>".$row[2]."</td>";
-                    echo "<td style='width: 200px;'>Actions TODO</td>";
+                    echo "<td style='width: 200px;'><a href=''>Remove from order</a></td>";
                     echo "</tr>";
                 }
                 mysqli_free_result($result);

@@ -1,43 +1,51 @@
 <?php
     include("./force_login.php");
+    global $user_id;
     include_once("./sqlInit.php");
     global $conn;
     include("./header.php");
 ?>
+<?php
+    if(isset($_POST["item_id"]) && isset($_POST["qty"])){
+        $query = "CALL `relate_item_and_order`(".$user_id.", ".$_POST["item_id"].", ".$_POST["qty"].");";
+        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+        $result = mysqli_store_result($conn);
+        while (mysqli_next_result($conn));
+    }
+?>
+
 <!-- background on the website-->
 <div class="bg">
     <p>View Items</p>
-    <?php 
+    
+    <table>
+        <tr><th>Item Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Order Qty</th><th>Actions</th></tr>
+    <?php
+
         $query = "CALL `select_all_items`()";
-        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
-        $result = mysqli_store_result($conn);
-        $order_count = mysqli_num_rows($result);
-        $order_ids = [];
-        while($row = mysqli_fetch_row($result)){
-            $order_ids[] = $row[0];
-        }
-        mysqli_free_result($result);
-        while (mysqli_next_result($conn));
-
-        echo "<table><tr><th>Item Name</th><th>Item Quantity</th><th>Item Price</th><th>Actions</th></tr>";
-
-        $query = "CALL `select_order_info`(".$order_id.");";
         mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
         $result = mysqli_store_result($conn);
         while($row = mysqli_fetch_row($result)){
             echo "<tr>";
-            echo "<td style='width: 250px;'>".$row[0]."</td>";
-            echo "<td style='width: 150px;'>".$row[1]."</td>";
-            echo "<td style='width: 100px;'>".$row[2]."</td>";
-            echo "<td style='width: 200px;'>Actions TODO</td>";
+            echo "<td style='width: 200px;'>".$row[1]."</td>";
+            echo "<td style='width: 250px;'>".$row[2]."</td>";
+            echo "<td style='width: 75px;'>".$row[3]."</td>";
+            echo "<td style='width: 75px;'>".$row[4]."</td>";
+            echo "<form action='' method='post'>
+                <td style='width: 50px;'>
+                    <input type='number' name='qty' min='0' max='".$row[4]."'>
+                </td>";
+            echo "<td style='width: 120px;'>
+                    <button type='submit' name='item_id' value=".$row[0].">Add To Order</button>
+                </td>
+            </form>";
             echo "</tr>";
         }
         mysqli_free_result($result);
         while (mysqli_next_result($conn));
-
-        echo "</table></br></br>";
         
     ?>
+    </table></br></br>
     <br><br><br><br>
 </div>
 <?php
