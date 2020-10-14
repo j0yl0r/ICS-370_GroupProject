@@ -10,7 +10,7 @@
 <div class="bg">
     
     <?php
-        if(isset($_POST["item_id"]) && isset($_POST["qty"])){
+        if(isset($_POST["item_id"]) && isset($_POST["qty"]) && $_POST["qty"]){
             $query = "CALL `relate_item_and_order`(".$user_id.", ".$_POST["item_id"].", ".$_POST["qty"].");";
             mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
             $result = mysqli_store_result($conn);
@@ -47,7 +47,7 @@
         while (mysqli_next_result($conn));
         
     ?>
-    </table></br></br>
+    </table>
     <br><br><br><br>
 </div>
 <?php
