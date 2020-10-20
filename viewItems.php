@@ -21,7 +21,7 @@
 
     <p>View Items</p>
     
-    <table><tr><th>Item Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Order Qty</th><th>Actions</th></tr>
+    <table><tr><th>Item Name</th><th>Description</th><th>Price</th><th>Order Qty</th><th>Actions</th></tr>
     <?php
 
         $query = "CALL `select_all_items`()";
@@ -32,10 +32,9 @@
             echo "<td style='width: 200px;'>".$row[1]."</td>";
             echo "<td style='width: 250px;'>".$row[2]."</td>";
             echo "<td style='width: 75px;'>".$row[3]."</td>";
-            echo "<td style='width: 75px;'>".$row[4]."</td>";
             echo "<form action='' method='post'>
                 <td style='width: 50px;'>
-                    <input type='number' name='qty' min='0' max='".$row[4]."'>
+                    <input type='number' name='qty' min='0' max='99'>
                 </td>";
             echo "<td style='width: 120px;'>
                     <button type='submit' name='item_id' value=".$row[0].">Add To Order</button>

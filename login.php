@@ -9,6 +9,7 @@
     <!-- border layout-->
     <div class="round">
         <?php
+        // Used on login
         if(isset($_POST["uname"]) && isset($_POST["psw"])){
             $query = "CALL `attempt_login`('".$_POST["uname"]."', '".$_POST["psw"]."');";
             mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
@@ -33,13 +34,13 @@
             <label for="psw"><b>Password</b></label>
                 <input type="password" placeholder="Enter Password" id="psw" name="psw" required>
             <br><br>
-            <span class="psw">Forgot <a href="forgotPassword.html">password?</a></span>
-            <br><br>
+            <!--<span class="psw">Forgot <a href="forgotPassword.html">password?</a></span>
+            <br><br>-->
             <button type="submit" id="submit_button">Login</button>
         </form>
         <br><br><br>
         <hr><br>
-        New Customer? <button type="submit"><a href="createAccount.html">Create Account</a></button>
+        New Customer? <button type="submit"><a href="createAccount.php">Create Account</a></button>
     </div>
 </div>
 

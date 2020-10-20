@@ -17,7 +17,11 @@
             <a href="index.php">Home</a>
             <a href="viewItems.php">View Items</a>
             <a href="viewOrders.php">View Orders</a>
-            <a href="viewReturns.php">View Returns</a>
-            <a href="trackDeliveries.php">Track Deliveries</a>
-            <a href="logout.php" class="right">Log Out</a>
+            <a href="editCustomerInfo.php">Change Customer Details</a>
+            <a href="logout.php" class="right">
+                Log Out 
+                <?php
+                    if(isset($_SESSION['username'])) echo $_SESSION['username']; 
+                ?>
+            </a>
         </div>

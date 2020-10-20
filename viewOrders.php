@@ -55,7 +55,7 @@
                 while (mysqli_next_result($conn));
                 
                 echo "<h3>Order ID: #".$order_id."</h3>";
-                echo "<h3>Order Status: ".$order_status;
+                echo "<h3>Delivery Status: ".$order_status;
                 if($order_status == 'being_made'){
                     echo "&nbsp&nbsp&nbsp&nbsp&nbsp";
                     echo "<form action='' method='post'>

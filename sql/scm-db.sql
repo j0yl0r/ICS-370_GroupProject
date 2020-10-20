@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 01, 2020 at 03:59 AM
+-- Generation Time: Oct 21, 2020 at 01:05 AM
 -- Server version: 10.1.35-MariaDB
 -- PHP Version: 7.2.9
 
@@ -33,7 +33,7 @@ BEGIN
 SELECT (SELECT COUNT(`users`.`id`)
         FROM `users` 
         WHERE `users`.`username` = username AND
-        `users`.`password` = password) = 1 AS 'Success';
+        `users`.`password` = password) > 0 AS 'Success';
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `checkout_order` (IN `order_id` INT)  NO SQL
@@ -41,18 +41,46 @@ BEGIN
 UPDATE `customer_orders` SET `status`='processing' WHERE `customer_orders`.`id` = order_id;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_order_item_relation` (IN `relation_id` INT)  MODIFIES SQL DATA
+BEGIN
+DECLARE order_id int;
+DECLARE order_item_count int;
+SELECT `order_item_relations`.`order_id` INTO order_id FROM `order_item_relations` WHERE `order_item_relations`.`id` = relation_id LIMIT 1;
+DELETE FROM `order_item_relations` WHERE `order_item_relations`.`id` = relation_id;
+
+SELECT COUNT(`order_item_relations`.`id`) INTO order_item_count FROM `order_item_relations` WHERE `order_item_relations`.`order_id` = order_id;
+
+DELETE FROM `customer_orders` WHERE `customer_orders`.`id` = order_id AND order_item_count = 0;
+
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_admin` (IN `username` VARCHAR(24), IN `psw` VARCHAR(32), IN `email` VARCHAR(64), IN `phone_number` VARCHAR(24), IN `last_name` VARCHAR(24), IN `first_name` VARCHAR(24))  NO SQL
+BEGIN
+
+INSERT INTO `users` (`username`, `password`, `email`, `phone_number`, `role`, `first_name`, `last_name`) VALUES (username, psw, email, phone_number, 'administrator', first_name, last_name);
+
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_available_item` (IN `name` VARCHAR(32), IN `description` VARCHAR(1023), IN `price` FLOAT)  MODIFIES SQL DATA
 BEGIN
 INSERT INTO `available_items`(`name`, `description`, `price`) VALUES (name, description, price);
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_user` (IN `username` VARCHAR(24), IN `password` VARCHAR(32), IN `role` ENUM('administrator','customer','transportation_associate'), IN `first_name` VARCHAR(24), IN `last_name` VARCHAR(24))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_customer` (IN `username` VARCHAR(24), IN `psw` VARCHAR(32), IN `email` VARCHAR(64), IN `phone_number` VARCHAR(24), IN `first_name` VARCHAR(24), IN `last_name` VARCHAR(24), IN `street_addr` VARCHAR(64), IN `city` VARCHAR(32), IN `state` CHAR(2), IN `zip` INT(5), IN `card_number` BIGINT(64))  NO SQL
 BEGIN
-INSERT INTO `users` (`username`, `password`, `role`, `first_name`, `last_name`) VALUES (username, password, role, first_name, last_name);
 
-IF role = 'customer' THEN
-	INSERT INTO `customer_info`(`customer_id`) VALUES (LAST_INSERT_ID());
-END IF;
+INSERT INTO `users` (`username`, `password`, `email`, `phone_number`, `role`, `first_name`, `last_name`) VALUES (username, psw, email, phone_number, 'customer', first_name, last_name);
+
+INSERT INTO `customer_info`(`customer_id`, `street_address`, `city`, `state`, `zip_code`, `card_number`) VALUES (LAST_INSERT_ID(), street_addr, city, state, zip, card_number);
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_transportation_associate` (IN `username` VARCHAR(24), IN `psw` VARCHAR(32), IN `email` VARCHAR(64), IN `phone_number` VARCHAR(24), IN `last_name` VARCHAR(24), IN `first_name` VARCHAR(24))  NO SQL
+BEGIN
+
+INSERT INTO `users` (`username`, `password`, `email`, `phone_number`, `role`, `first_name`, `last_name`) VALUES (username, psw, email, phone_number, 'transportation_associate', first_name, last_name);
+
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `relate_item_and_material` (IN `available_item_id` INT, IN `material_id` INT, IN `quantity` INT)  MODIFIES SQL DATA
@@ -68,18 +96,28 @@ DECLARE order_id int;
 /* Add an item to a customer's order, creating an order if one does not yet being made */
 
 /* Insert a new custoemr order that is 'being_made' if one does not already exist */
-INSERT INTO `customer_orders`(`customer_id`, `status`) (SELECT customer_id, 'being_made' WHERE NOT EXISTS (SELECT * FROM `customer_orders` WHERE `customer_id` = customer_id AND `status` = 'being_made'));
+INSERT INTO `customer_orders`(`customer_id`, `status`) (SELECT customer_id, 'being_made' WHERE NOT EXISTS (SELECT * FROM `customer_orders` WHERE `customer_orders`.`customer_id` = customer_id AND `customer_orders`.`status` = 'being_made'));
 
-SELECT `customer_orders`.`id` INTO order_id FROM `customer_orders` WHERE `customer_id` = customer_id AND `status` = 'being_made' LIMIT 1;
+SELECT `customer_orders`.`id` INTO order_id FROM `customer_orders` WHERE `customer_orders`.`customer_id` = customer_id AND `customer_orders`.`status` = 'being_made' LIMIT 1;
 
 INSERT INTO `order_item_relations`(`order_id`, `item_id`, `quantity_ordered`) VALUES (order_id, available_item_id, quantity);
                                                                                       
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `select_customer_info` (IN `customer_id` INT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_all_items` ()  READS SQL DATA
 BEGIN
-SELECT `customer_info`.`street_address`, `customer_info`.`city`, `customer_info`.`state`, `customer_info`.`zip_code`, `customer_info`.`card_number` 
-FROM `customer_info` WHERE `customer_info`.`customer_id` = customer_id;
+SELECT * FROM `available_items`;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_customer_info` (IN `customer_id` INT)  READS SQL DATA
+BEGIN
+SELECT `users`.`username`, `users`.`first_name`, `users`.`last_name`, `users`.`phone_number`, `users`.`email`, `customer_info`.`street_address`, `customer_info`.`city`, `customer_info`.`state`, `customer_info`.`zip_code`, `customer_info`.`card_number` 
+FROM `users` LEFT JOIN `customer_info` ON (`users`.`id` = `customer_info`.`customer_id`) WHERE `users`.`id` = customer_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_customer_orders` (IN `customer_id` INT)  READS SQL DATA
+BEGIN
+SELECT `customer_orders`.`id` FROM `customer_orders` WHERE `customer_orders`.`customer_id` = customer_id ORDER BY `customer_orders`.`id` DESC;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `select_item_materials_info` (IN `item_id` INT)  NO SQL
@@ -111,18 +149,19 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `select_order_info` (IN `order_id` INT)  READS SQL DATA
     DETERMINISTIC
 BEGIN
-DECLARE customer_id int;
 
-SELECT `customer_orders`.`customer_id` INTO customer_id FROM `customer_orders` WHERE `customer_orders`.`id` = order_id;
-
-SELECT `available_items`.`name` AS 'item',
+SELECT `order_item_relations`.`id`, `available_items`.`name` AS 'item',
 `order_item_relations`.`quantity_ordered` AS 'QTY',
 ROUND(`available_items`.`price`, 2) AS 'Price' 
 FROM `order_item_relations` LEFT JOIN `available_items` 
 ON (`order_item_relations`.`item_id` = `available_items`.`id`)
 WHERE `order_item_relations`.`order_id` = order_id;
 
-CALL select_shipping_info(customer_id);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_order_status` (IN `order_id` INT)  READS SQL DATA
+BEGIN
+SELECT `customer_orders`.`status` FROM `customer_orders` WHERE `customer_orders`.`id` = order_id;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `select_shipping_info` (IN `user_id` INT)  READS SQL DATA
@@ -130,6 +169,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `select_shipping_info` (IN `user_id`
 BEGIN
 SELECT `users`.`first_name`, `users`.`last_name`, `customer_info`.`street_address`, `customer_info`.`city`, `customer_info`.`state`, `customer_info`.`zip_code` 
 FROM `users` LEFT JOIN `customer_info` ON (`users`.`id` = `customer_info`.`customer_id`) WHERE `users`.`id` = user_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_user_id` (IN `username` VARCHAR(24), IN `password` VARCHAR(32))  READS SQL DATA
+BEGIN
+SELECT `users`.`id`
+        FROM `users` 
+        WHERE `users`.`username` = username AND
+        `users`.`password` = password LIMIT 1;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `update_available_item` (IN `item_id` INT, IN `name` VARCHAR(32), IN `description` VARCHAR(1024), IN `price` FLOAT, IN `stock` INT)  NO SQL
@@ -146,8 +193,9 @@ UPDATE `available_items` SET `stock`=stock WHERE `available_items`.`id` = item_i
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `update_customer_info` (IN `customer_id` INT, IN `street_address` VARCHAR(64), IN `city` VARCHAR(32), IN `state` CHAR(2), IN `zip_code` INT(5), IN `card_number` INT(24))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `update_customer_info` (IN `customer_id` INT, IN `username` VARCHAR(24), IN `email` VARCHAR(64), IN `phone` VARCHAR(24), IN `fname` VARCHAR(24), IN `lname` VARCHAR(24), IN `street_address` VARCHAR(64), IN `city` VARCHAR(32), IN `state` CHAR(2), IN `zip_code` INT(5), IN `card_number` INT(24))  NO SQL
 BEGIN
+UPDATE `users` SET `username`=username,`email`=email,`phone_number`=phone,`first_name`=fname,`last_name`=lname WHERE `users`.`id` = customer_id;
 UPDATE `customer_info` SET `street_address`=street_address,`city`=city,`state`=state,`zip_code`=zip_code,`card_number`=card_number WHERE `customer_info`.`customer_id` = customer_id;
 END$$
 
@@ -208,9 +256,7 @@ CREATE TABLE `customer_info` (
 --
 
 INSERT INTO `customer_info` (`id`, `customer_id`, `street_address`, `city`, `state`, `zip_code`, `card_number`) VALUES
-(1, 2, '123 Street Rd.', 'Saint Paul', 'MN', 55112, 9123456789123456),
-(2, 4, '987 MyStreet Ave.', 'Minneapolis', 'MN', 55111, 1111111111111111),
-(3, 7, 'ABC St.', 'Roseville', 'MN', 55113, 1000000000000000);
+(1, 2, '124 Street Rd.', 'Saint Paul', 'MN', 55112, 2147483647);
 
 -- --------------------------------------------------------
 
@@ -229,9 +275,9 @@ CREATE TABLE `customer_orders` (
 --
 
 INSERT INTO `customer_orders` (`id`, `customer_id`, `status`) VALUES
-(1, 2, 'processing'),
-(2, 4, 'being_made'),
-(4, 7, 'being_made');
+(1, 2, 'delivered'),
+(11, 2, 'processing'),
+(12, 2, 'being_made');
 
 -- --------------------------------------------------------
 
@@ -300,8 +346,11 @@ CREATE TABLE `order_item_relations` (
 INSERT INTO `order_item_relations` (`id`, `order_id`, `item_id`, `quantity_ordered`) VALUES
 (1, 1, 1, 2),
 (2, 1, 3, 1),
-(3, 2, 2, 9),
-(4, 1, 4, 1);
+(4, 1, 4, 1),
+(27, 11, 1, 3),
+(28, 12, 4, 1),
+(29, 12, 2, 2),
+(30, 12, 3, 3);
 
 -- --------------------------------------------------------
 
@@ -326,11 +375,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `phone_number`, `role`, `first_name`, `last_name`) VALUES
 (1, 'Kim', 'password', 'yk4510kf@go.minnstate.edu', '', 'administrator', 'Kim', 'Pampusch'),
-(2, 'Bob123', 'password', 'bob@gmail.com', '', 'customer', 'Bob', 'OneTwoThree'),
+(2, 'Bobby123', 'password', 'bobby@gmail.com', '6513333333', 'customer', 'Bobby', 'OneTwoThree'),
 (3, 'TransportTheStuff', 'password', 'transport@gmail.com', '', 'transportation_associate', 'Joe', 'Smith'),
-(4, 'BestCustomer', 'password', 'eSmith@yahoo.com', '', 'customer', 'Emily', 'Smith'),
-(6, 'transport_person', 'password', 'transporting@gmail.com', '', 'transportation_associate', 'transp', 'ort'),
-(7, 'customer123', 'password', 'customer@gmail.com', '', 'customer', 'custom', 'er');
+(6, 'transport_person', 'password', 'transporting@gmail.com', '', 'transportation_associate', 'transp', 'ort');
 
 --
 -- Indexes for dumped tables
@@ -398,13 +445,13 @@ ALTER TABLE `available_items`
 -- AUTO_INCREMENT for table `customer_info`
 --
 ALTER TABLE `customer_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `customer_orders`
 --
 ALTER TABLE `customer_orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `item_material_relations`
@@ -422,13 +469,13 @@ ALTER TABLE `materials`
 -- AUTO_INCREMENT for table `order_item_relations`
 --
 ALTER TABLE `order_item_relations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
