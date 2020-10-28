@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 21, 2020 at 01:05 AM
+-- Generation Time: Oct 28, 2020 at 11:03 PM
 -- Server version: 10.1.35-MariaDB
 -- PHP Version: 7.2.9
 
@@ -11,12 +11,6 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `scm-db`
@@ -41,6 +35,11 @@ BEGIN
 UPDATE `customer_orders` SET `status`='processing' WHERE `customer_orders`.`id` = order_id;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_available_item` (IN `item_id` INT)  MODIFIES SQL DATA
+BEGIN
+DELETE FROM `available_items` WHERE `available_items`.`id` = item_id;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_order_item_relation` (IN `relation_id` INT)  MODIFIES SQL DATA
 BEGIN
 DECLARE order_id int;
@@ -62,9 +61,9 @@ INSERT INTO `users` (`username`, `password`, `email`, `phone_number`, `role`, `f
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_available_item` (IN `name` VARCHAR(32), IN `description` VARCHAR(1023), IN `price` FLOAT)  MODIFIES SQL DATA
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_available_item` (IN `name` VARCHAR(32), IN `description` VARCHAR(1023), IN `price` FLOAT, IN `stock` INT)  MODIFIES SQL DATA
 BEGIN
-INSERT INTO `available_items`(`name`, `description`, `price`) VALUES (name, description, price);
+INSERT INTO `available_items`(`name`, `description`, `price`, `stock`) VALUES (name, description, price, stock);
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_new_customer` (IN `username` VARCHAR(24), IN `psw` VARCHAR(32), IN `email` VARCHAR(64), IN `phone_number` VARCHAR(24), IN `first_name` VARCHAR(24), IN `last_name` VARCHAR(24), IN `street_addr` VARCHAR(64), IN `city` VARCHAR(32), IN `state` CHAR(2), IN `zip` INT(5), IN `card_number` BIGINT(64))  NO SQL
@@ -179,6 +178,11 @@ SELECT `users`.`id`
         `users`.`password` = password LIMIT 1;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `select_user_role` (IN `user_id` INT)  READS SQL DATA
+BEGIN
+SELECT `users`.`role` FROM `users` WHERE `users`.`id` = user_id;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `update_available_item` (IN `item_id` INT, IN `name` VARCHAR(32), IN `description` VARCHAR(1024), IN `price` FLOAT, IN `stock` INT)  NO SQL
 BEGIN
 UPDATE `available_items` SET `name`=name,`description`=description,`price`=price,`stock`=stock WHERE `available_items`.`id` = item_id;
@@ -231,9 +235,10 @@ CREATE TABLE `available_items` (
 
 INSERT INTO `available_items` (`id`, `name`, `description`, `price`, `stock`) VALUES
 (1, 'Oak Wood Chair', 'An Oak Wood Chair is the best kind of chair.', 29.97, 100),
-(2, 'Maple Wood Chair', 'Maple is better than oak.', 29.98, 20),
+(2, 'Maple Wood Chair', 'Maple is better than oak!', 29.98, 22),
 (3, 'Oak Wood Rocking Chair', 'It rocks.', 34.99, 5),
-(4, 'Maple Stool', 'A wonderful stool made of maple.', 19.99, 0);
+(4, 'Maple Stool', 'A wonderful stool made of maple.', 19.99, 0),
+(6, 'Oak Wood Table', 'A table made out of oak wood!', 50, 5);
 
 -- --------------------------------------------------------
 
@@ -256,7 +261,8 @@ CREATE TABLE `customer_info` (
 --
 
 INSERT INTO `customer_info` (`id`, `customer_id`, `street_address`, `city`, `state`, `zip_code`, `card_number`) VALUES
-(1, 2, '124 Street Rd.', 'Saint Paul', 'MN', 55112, 2147483647);
+(1, 2, '124 Street Rd.', 'Saint Paul', 'MN', 55112, 2147483647),
+(2, 7, '123', 'Roseville', 'MN', 54658, 123456789);
 
 -- --------------------------------------------------------
 
@@ -277,7 +283,9 @@ CREATE TABLE `customer_orders` (
 INSERT INTO `customer_orders` (`id`, `customer_id`, `status`) VALUES
 (1, 2, 'delivered'),
 (11, 2, 'processing'),
-(12, 2, 'being_made');
+(12, 2, 'processing'),
+(13, 2, 'being_made'),
+(14, 7, 'processing');
 
 -- --------------------------------------------------------
 
@@ -349,8 +357,9 @@ INSERT INTO `order_item_relations` (`id`, `order_id`, `item_id`, `quantity_order
 (4, 1, 4, 1),
 (27, 11, 1, 3),
 (28, 12, 4, 1),
-(29, 12, 2, 2),
-(30, 12, 3, 3);
+(31, 12, 3, 2),
+(32, 13, 1, 1),
+(33, 14, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -375,9 +384,10 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `phone_number`, `role`, `first_name`, `last_name`) VALUES
 (1, 'Kim', 'password', 'yk4510kf@go.minnstate.edu', '', 'administrator', 'Kim', 'Pampusch'),
-(2, 'Bobby123', 'password', 'bobby@gmail.com', '6513333333', 'customer', 'Bobby', 'OneTwoThree'),
+(2, 'Bobby123', 'password', 'bobby@gmail.com', '6513333333', 'customer', 'Bobbyyyy', 'OneTwoThree'),
 (3, 'TransportTheStuff', 'password', 'transport@gmail.com', '', 'transportation_associate', 'Joe', 'Smith'),
-(6, 'transport_person', 'password', 'transporting@gmail.com', '', 'transportation_associate', 'transp', 'ort');
+(6, 'transport_person', 'password', 'transporting@gmail.com', '', 'transportation_associate', 'transp', 'ort'),
+(7, 'user_test', 'password', 'gmail@gmail.com', '123', 'customer', 'kim', 'P');
 
 --
 -- Indexes for dumped tables
@@ -439,19 +449,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `available_items`
 --
 ALTER TABLE `available_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `customer_info`
 --
 ALTER TABLE `customer_info`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `customer_orders`
 --
 ALTER TABLE `customer_orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `item_material_relations`
@@ -469,13 +479,13 @@ ALTER TABLE `materials`
 -- AUTO_INCREMENT for table `order_item_relations`
 --
 ALTER TABLE `order_item_relations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
@@ -507,7 +517,3 @@ ALTER TABLE `order_item_relations`
   ADD CONSTRAINT `order_item_relations_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `available_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `order_item_relations_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `customer_orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
