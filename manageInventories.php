@@ -8,44 +8,41 @@
 
 <div class="bg">
 
-<?php
+    <?php
 
-if(isset($_POST['update']) && isset($_POST['item_id']) && 
-isset($_POST['name']) && isset($_POST['desc']) && 
-isset($_POST['price']) && isset($_POST['stock'])){
-    // If this page was loaded to update an item
-    $query = "CALL `update_available_item`(".$_POST['item_id'].", '".$_POST["name"]."', '".
-        $_POST["desc"]."', ".$_POST['price'].", ".$_POST['qty'].");";
-    mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
-    $result = mysqli_store_result($conn);
-    while(mysqli_next_result($conn));
-    echo "<h4>Updated Item: ".$_POST['name']."</h4>";
+    if(isset($_POST['update']) && isset($_POST['item_id']) && 
+    isset($_POST['name']) && isset($_POST['desc']) && 
+    isset($_POST['price']) && isset($_POST['stock'])){
+        // If this page was loaded to update an item
+        $query = "CALL `update_available_item`(".$_POST['item_id'].", '".$_POST["name"]."', '".
+            $_POST["desc"]."', ".$_POST['price'].", ".$_POST['stock'].");";
+        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+        $result = mysqli_store_result($conn);
+        while(mysqli_next_result($conn));
+        echo "<h4>Updated Item: ".$_POST['name']."</h4>";
 
-}
-else if(isset ($_POST['delete']) && isset($_POST['item_id'])){
-    // If this page was loaded to delete an item
-    $query = "CALL `delete_available_item`(".$_POST['item_id'].");";
-    mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
-    $result = mysqli_store_result($conn);
-    while(mysqli_next_result($conn));
-    echo "<h4>Deleted Item: ".$_POST['name']."</h4>";
+    } else if(isset ($_POST['delete']) && isset($_POST['item_id'])){
+        // If this page was loaded to delete an item
+        $query = "CALL `delete_available_item`(".$_POST['item_id'].");";
+        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+        $result = mysqli_store_result($conn);
+        while(mysqli_next_result($conn));
+        echo "<h4>Deleted Item: ".$_POST['name']."</h4>";
 
-}
-else if(isset ($_POST['add']) && isset($_POST['name']) &&
-isset($_POST['desc']) && isset($_POST['price']) && 
-isset($_POST['stock'])){
-    // If this page was loaded to add an item
-    $query = "CALL `insert_new_available_item`('".$_POST["name"]."', '".
-        $_POST["desc"]."', ".$_POST['price'].", ".$_POST['stock'].");";
-    mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
-    $result = mysqli_store_result($conn);
-    while(mysqli_next_result($conn));
-    echo "<h4>Added Item: ".$_POST['name']."</h4>";
-};
-?>
+    } else if(isset ($_POST['add']) && isset($_POST['name']) &&
+    isset($_POST['desc']) && isset($_POST['price']) && 
+    isset($_POST['stock'])){
+        // If this page was loaded to add an item
+        $query = "CALL `insert_new_available_item`('".$_POST["name"]."', '".
+            $_POST["desc"]."', ".$_POST['price'].", ".$_POST['stock'].");";
+        mysqli_multi_query($conn, $query) or die(mysqli_error($conn));
+        $result = mysqli_store_result($conn);
+        while(mysqli_next_result($conn));
+        echo "<h4>Added Item: ".$_POST['name']."</h4>";
+    };
+    ?>
 
-
-<!-- background on the website-->
+    <!-- background on the website-->
     
     <h3>Edit Inventories</h3>
     <table><tr><th>Item Name</th><th>Description</th><th>Price</th><th>Qty</th>
@@ -69,7 +66,7 @@ isset($_POST['stock'])){
                 <td style='width: 50px;'>
                     <input type='text' id='price' name='price' value='".$row[3]."' required></td>
                 <td>
-                    <input style='width: 65px;'  min='0' max='999' type='number' name='qty' value='".$row[4]."' required>
+                    <input style='width: 65px;'  min='0' max='999' type='number' name='stock' value='".$row[4]."' required>
                 </td>
                 <td>
                     <button type='submit' name='update' value=''>Update</button>
