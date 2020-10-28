@@ -16,6 +16,7 @@
             $result = mysqli_store_result($conn);
             $login_successful = mysqli_fetch_row($result)[0];
             mysqli_free_result($result);
+            while (mysqli_next_result($conn));
             if(!$login_successful){
                 echo "<h3>Failed to log in user: ".$_POST["uname"]."</h3>";
             } else {
